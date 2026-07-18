@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
 # Asegurar que el directorio raíz sea importable
-sys.path.append("/Users/mac-mermitas/Documents/HACKATON")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(base_dir)
 
 from src.liquidacion import calcular_liquidacion_728, obtener_mensaje_regimen_publico, obtener_mensaje_cas
 from src.retrieval import SentenciasRetrieval
@@ -216,7 +217,8 @@ def procesar_explicacion_ia(req: ExplicacionRequest):
 
 @app.post("/api/reporte-pdf")
 def descargar_reporte_pdf(req: PdfRequest):
-    pdf_path = "/Users/mac-mermitas/Documents/HACKATON/data/reporte_caso.pdf"
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    pdf_path = os.path.join(base_dir, "data", "reporte_caso.pdf")
     
     # Formatear liquidación compatible
     class MockLiquidacion:

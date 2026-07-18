@@ -5,7 +5,12 @@ import duckdb
 from typing import List, Dict, Any
 
 class SentenciasRetrieval:
-    def __init__(self, data_dir: str = "/Users/mac-mermitas/Documents/HACKATON/data"):
+    def __init__(self, data_dir: str = None):
+        if data_dir is None:
+            # Obtener el directorio raíz del proyecto dinámicamente
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            data_dir = os.path.join(base_dir, "data")
+            
         self.parquet_path = os.path.join(data_dir, "sentencias_desnat.parquet")
         self.npy_path = os.path.join(data_dir, "embeddings.npy")
         
