@@ -55,7 +55,6 @@ class SentenciasRetrieval:
             SELECT ID, titulo, abstract_clean, metadata_pretension, regimen, similarity, url_pdf, metadata_norma_derecho, fecha
             FROM sentencias_temp
             WHERE regimen = '{regimen}'
-              AND (titulo LIKE '%Fundada%' OR titulo LIKE '%Infundada%' OR titulo LIKE '%Improcedente%')
             ORDER BY similarity DESC
             LIMIT {top_k}
         """

@@ -4,4 +4,5 @@ pyarrow
 sentence-transformers
 streamlit
 fpdf2
-duckdb
+fastapi
+uvicorn

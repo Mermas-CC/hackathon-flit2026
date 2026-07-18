@@ -520,25 +520,27 @@ elif st.session_state.paso == 3:
             
             for i, sent in enumerate(sentencias):
                 titulo_raw = sent['titulo']
-                fallo_amigable = "Fallo no especificado"
-                color_fallo = "#8b949e"
-                if "Fundada" in titulo_raw:
-                    fallo_amigable = "A FAVOR DEL TRABAJADOR (Demanda Fundada)"
-                    color_fallo = "#34d399" # Verde brillante
-                elif "Infundada" in titulo_raw:
+                abstract_limpio = sent['abstract'].strip()
+                abstract_limpio = re.sub(r'^\d+\.\s*(?:Que\s+)?', '', abstract_limpio)
+                abstract_limpio = abstract_limpio[0].upper() + abstract_limpio[1:] if abstract_limpio else ""
+                
+                # Buscar el fallo en el título y en el abstract para mayor cobertura
+                fallo_text = (titulo_raw + " " + abstract_limpio).lower()
+                fallo_amigable = "Criterio Judicial de Casación"
+                color_fallo = "#e2e8f0" # Blanco/Gris
+                if "infundada" in fallo_text:
                     fallo_amigable = "A FAVOR DEL EMPLEADOR (Demanda Infundada)"
                     color_fallo = "#f87171" # Rojo brillante
-                elif "Improcedente" in titulo_raw:
+                elif "fundada" in fallo_text or "fundado" in fallo_text:
+                    fallo_amigable = "A FAVOR DEL TRABAJADOR (Demanda Fundada)"
+                    color_fallo = "#34d399" # Verde brillante
+                elif "improcedente" in fallo_text:
                     fallo_amigable = "Improcedente (Aspecto formal)"
                     color_fallo = "#94a3b8"
                     
                 exp_match = re.search(r'(\d+-\d{4})', titulo_raw)
                 expediente = f"Expediente N° {exp_match.group(1)}" if exp_match else titulo_raw
-                
-                abstract_limpio = sent['abstract'].strip()
-                abstract_limpio = re.sub(r'^\d+\.\s*(?:Que\s+)?', '', abstract_limpio)
-                abstract_limpio = abstract_limpio[0].upper() + abstract_limpio[1:] if abstract_limpio else ""
-                
+
                 # Cargar información de vigencia y enriquecimiento
                 norma_ref = sent.get('norma_derecho', 'Ley 24041')
                 articulo_info = pm.obtener_articulo_por_ley(norma_ref)
