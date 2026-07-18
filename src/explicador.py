@@ -14,14 +14,18 @@ def explicar_caso(
     Utiliza la API de Gemini para generar una explicación amigable, clara y empática 
     de los resultados del caso para el trabajador en un formato estructurado JSON.
     """
+    # Usar variable de entorno si no se recibe api_key por argumento
+    if not api_key:
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        
     if not api_key:
         return {
             "resumen": "Clave API de Gemini no configurada.",
-            "significado": "Para recibir un análisis de tu caso impulsado por Inteligencia Artificial, ingresa tu API Key de Gemini en el panel lateral.",
+            "significado": "Para recibir un análisis de tu caso impulsado por Inteligencia Artificial, ingresa tu API Key de Gemini en el panel lateral o configúrala como variable de entorno GEMINI_API_KEY.",
             "analisis_detalle": "La IA te ayudará a interpretar el cálculo de la liquidación, el nivel de desnaturalización y cómo prepararte para un reclamo.",
             "pasos_sugeridos": [
                 "Obtén una clave de API gratuita en Google AI Studio.",
-                "Pega tu clave en el campo de la barra lateral de esta aplicación.",
+                "Pega tu clave en el campo de la barra lateral de esta aplicación o configúrala en el servidor.",
                 "Vuelve a presionar 'Calcular Diagnóstico' para ver los resultados."
             ]
         }

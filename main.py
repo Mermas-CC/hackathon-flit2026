@@ -46,7 +46,7 @@ class DiagnosticoRequest(BaseModel):
     gratif_ya_pagada: Optional[float] = 0.0
 
 class ExplicacionRequest(BaseModel):
-    api_key: str
+    api_key: Optional[str] = None
     datos_usuario: Dict[str, Any]
     scorecard_info: Dict[str, Any]
     liquidacion: Optional[Dict[str, Any]] = None
@@ -282,7 +282,7 @@ def descargar_reporte_pdf(req: PdfRequest):
 @app.post("/api/analizar-boleta")
 async def analizar_boleta(
     file: UploadFile = File(...),
-    api_key: str = Form(...)
+    api_key: Optional[str] = Form(None)
 ):
     import google.generativeai as genai
     import json
@@ -291,9 +291,13 @@ async def analizar_boleta(
     if not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="El archivo subido debe ser una imagen.")
         
+    active_key = api_key or os.environ.get("GEMINI_API_KEY", "")
+    if not active_key:
+        raise HTTPException(status_code=400, detail="Falta configurar la API Key de Gemini (por parámetro o variable de entorno GEMINI_API_KEY).")
+        
     try:
         # Configurar la API Key
-        genai.configure(api_key=api_key)
+        genai.configure(api_key=active_key)
         
         # Cargar los bytes de la imagen
         image_bytes = await file.read()
