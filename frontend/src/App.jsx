@@ -816,15 +816,31 @@ export default function App() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => {
-                          setPrecedenteSeleccionado(index);
-                          setSidepanelAbierto(true);
-                        }}
-                        className="w-full py-2.5 px-4 rounded bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-red-600 text-xs font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
-                      >
-                        Ver Análisis de Similitud
-                      </button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => {
+                            setPrecedenteSeleccionado(index);
+                            setSidepanelAbierto(true);
+                          }}
+                          className="py-2.5 px-2 rounded bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-red-600 text-[11px] font-bold transition-all duration-200 cursor-pointer text-center"
+                        >
+                          Ver Similitud
+                        </button>
+                        {sent.url ? (
+                          <a
+                            href={sent.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="py-2.5 px-2 rounded bg-slate-950 hover:bg-slate-900 text-slate-200 border border-slate-800 text-[11px] font-bold transition-all duration-200 text-center flex items-center justify-center gap-1"
+                          >
+                            📥 Descargar PDF
+                          </a>
+                        ) : (
+                          <span className="py-2.5 px-2 rounded bg-slate-100 text-slate-400 border border-slate-200 text-[11px] font-bold text-center cursor-not-allowed">
+                            Sin Enlace
+                          </span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
