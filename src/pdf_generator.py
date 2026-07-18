@@ -6,11 +6,11 @@ class ReportePDF(FPDF):
     def header(self):
         # Título
         self.set_font('Helvetica', 'B', 16)
-        self.set_text_color(26, 54, 93) # Navy blue
-        self.cell(0, 10, 'DesnaturalizaCheck - Reporte Legal & Financiero', 0, 1, 'C')
+        self.set_text_color(185, 28, 28) # Red-700
+        self.cell(0, 10, 'MiLiqui - Reporte de Diagnostico y Liquidacion Laboral', 0, 1, 'C')
         self.set_font('Helvetica', 'I', 9)
-        self.set_text_color(113, 128, 150)
-        self.cell(0, 5, 'Diagnostico de Laboralidad y Calculo de Beneficios Sociales', 0, 1, 'C')
+        self.set_text_color(100, 116, 139) # Slate-500
+        self.cell(0, 5, 'Evaluacion Tecnica de Relacion Laboral y Calculo de Beneficios', 0, 1, 'C')
         self.ln(5)
         # Línea de separación
         self.set_draw_color(226, 232, 240)
@@ -93,7 +93,6 @@ def generar_pdf_reporte(
     pdf.cell(45, 6, clean_txt(f"S/ {datos_usuario['sueldo']:.2f}"), 0, 1)
 
     # Columna 2 (Deducciones y variables de personalización)
-    # Volvemos arriba en la misma banda
     pdf.set_xy(110, pdf.get_y() - 24)
     pdf.set_font('Helvetica', 'B', 9)
     pdf.set_text_color(71, 85, 105)
@@ -124,13 +123,13 @@ def generar_pdf_reporte(
     # 2. Diagnóstico de Laboralidad
     pdf.set_font('Helvetica', 'B', 12)
     pdf.set_text_color(15, 23, 42)
-    pdf.cell(0, 8, clean_txt('2. DIAGNOSTICO DE SOLIDEREZ DEL CASO'), 0, 1)
+    pdf.cell(0, 8, clean_txt('2. DIAGNOSTICO DE SOLIDEZ DEL CASO'), 0, 1)
     
     puntaje = scorecard['puntaje']
     categoria = scorecard['categoria']
     
     pdf.set_font('Helvetica', 'B', 10)
-    pdf.set_text_color(2, 132, 199) # Sky-600
+    pdf.set_text_color(185, 28, 28) # Red-700
     pdf.cell(50, 6, clean_txt('Indice de Solidez:'), 0, 0)
     pdf.cell(0, 6, clean_txt(f"{puntaje}/100 - {categoria}"), 0, 1)
     
@@ -179,8 +178,8 @@ def generar_pdf_reporte(
         
         # Totales
         pdf.set_font('Helvetica', 'B', 9.5)
-        pdf.set_fill_color(224, 242, 254) # Sky-100 bg
-        pdf.set_text_color(3, 105, 161) # Sky-700 text
+        pdf.set_fill_color(254, 226, 226) # Red-100 bg
+        pdf.set_text_color(153, 27, 27) # Red-800 text
         pdf.cell(75, 8, clean_txt(' TOTAL ESTIMADO A RECLAMAR'), 1, 0, 'L', True)
         pdf.cell(57, 8, f"S/ {liquidacion.total_reclamable:.2f}", 1, 0, 'R', True)
         pdf.cell(58, 8, f"S/ {liquidacion.total_prescrito:.2f}", 1, 1, 'R', True)
@@ -191,7 +190,7 @@ def generar_pdf_reporte(
         if liquidacion.prescrito_totalmente:
             pdf.set_font('Helvetica', 'B', 9)
             pdf.set_text_color(220, 38, 38) # Red-600
-            pdf.multi_cell(0, 5, clean_txt("ALERTA DE PRESCRIPCION: Han transcurrido mas de 4 anos desde el cese laboral (Ley 27321). Toda accion de cobro podria ser declarada prescrita judicialmente."))
+            pdf.multi_cell(0, 5, clean_txt("Plazo de Accion Expirado (Ley 27321): Han transcurrido mas de 4 anos desde el cese de la relacion. El empleador podria deducir la excepcion de prescripcion en la via judicial."))
             pdf.set_text_color(51, 65, 85)
             pdf.ln(5)
     elif datos_usuario['regimen'] == 'Público (Ley 24041 / DL 276)':
@@ -200,11 +199,11 @@ def generar_pdf_reporte(
         pdf.cell(0, 8, clean_txt('3. ORIENTACION DE REGIMEN PUBLICO (Ley 24041)'), 0, 1)
         pdf.set_font('Helvetica', '', 9.5)
         pdf.set_text_color(51, 65, 85)
-        pdf.multi_cell(0, 5, clean_txt("La desnaturalizacion en el Sector Publico no otorga beneficios del regimen 728 de forma directa. Otorga derecho a la reincorporacion laboral o estabilidad en la plaza correspondientes."))
+        pdf.multi_cell(0, 5, clean_txt("El regimen publico no contempla la conversion a beneficios del regimen privado. Da derecho a la reposicion en plaza presupuestada y de naturaleza permanente."))
         pdf.ln(3)
         pdf.set_font('Helvetica', 'B', 9)
-        pdf.set_text_color(194, 65, 12) # Orange-700
-        pdf.multi_cell(0, 5, clean_txt("Precedente Huatuco (Cas. 5057-2013-Junin): Exige concurso publico de meritos en plaza vacante presupuestada de naturaleza permanente para la reincorporacion indefinida."))
+        pdf.set_text_color(185, 28, 28) # Red-700
+        pdf.multi_cell(0, 5, clean_txt("Criterio Huatuco (Precedente Vinculante): Exige concurso publico de meritos en plaza vacante de naturaleza permanente para viabilizar la reincorporacion."))
         pdf.ln(5)
     else:
         pdf.set_font('Helvetica', 'B', 12)
@@ -212,7 +211,7 @@ def generar_pdf_reporte(
         pdf.cell(0, 8, clean_txt('3. ORIENTACION DE REGIMEN CAS (DL 1057)'), 0, 1)
         pdf.set_font('Helvetica', '', 9.5)
         pdf.set_text_color(51, 65, 85)
-        pdf.multi_cell(0, 5, clean_txt("El regimen CAS otorga estabilidad laboral relativa y la posibilidad de reposicion en caso de despido incausado o el pago de la indemnización por despido arbitrario segun jurisprudencia vinculante."))
+        pdf.multi_cell(0, 5, clean_txt("El regimen CAS otorga reposicion unicamente ante despido incausado si se cumple la estabilidad relativa, o indemnizacion por despido arbitrario de acuerdo con las reglas de Servir."))
         pdf.ln(5)
         
     # 4. Jurisprudencia de Soporte
@@ -228,9 +227,9 @@ def generar_pdf_reporte(
         # Determinar el sentido del fallo
         fallo_amigable = "Fallo no especificado"
         if "Fundada" in titulo_raw:
-            fallo_amigable = "GANO EL TRABAJADOR (Demanda Fundada)"
+            fallo_amigable = "Demanda Fundada (A favor del trabajador)"
         elif "Infundada" in titulo_raw:
-            fallo_amigable = "GANO EL EMPLEADOR (Demanda Infundada)"
+            fallo_amigable = "Demanda Infundada (A favor del empleador)"
         elif "Improcedente" in titulo_raw:
             fallo_amigable = "Improcedente"
             
@@ -250,13 +249,13 @@ def generar_pdf_reporte(
         # Enlace de descarga oficial
         if url_sentencia:
             pdf.set_font('Helvetica', 'B', 8.5)
-            pdf.set_text_color(2, 132, 199) # Sky-600
+            pdf.set_text_color(185, 28, 28) # Red-700
             pdf.cell(0, 4, clean_txt("-> Ver Resolucion Completa en El Peruano (PDF Oficial)"), 0, 1, link=url_sentencia)
             pdf.set_text_color(51, 65, 85)
             
         # Sentido del fallo
         pdf.set_font('Helvetica', 'B', 8.5)
-        if "GANO EL TRABAJADOR" in fallo_amigable:
+        if "A favor del trabajador" in fallo_amigable:
             pdf.set_text_color(22, 163, 74) # Green-600
         else:
             pdf.set_text_color(100, 116, 139) # Slate-500
@@ -275,6 +274,6 @@ def generar_pdf_reporte(
     pdf.ln(3)
     pdf.set_font('Helvetica', 'I', 8)
     pdf.set_text_color(100, 116, 139)
-    pdf.multi_cell(0, 3.5, clean_txt("DISCLAIMER: Esta es una herramienta de orientacion algoritmica y no constituye asesoria legal formal. Los calculos y analisis de solidez son referenciales y se basan en criterios jurisprudenciales generales. Para iniciar acciones legales o administrativas, se aconseja consultar con un abogado laboralista o acudir a SUNAFIL."))
+    pdf.multi_cell(0, 3.5, clean_txt("Nota de Uso: Este reporte ofrece una estimacion referencial basada en analisis de patrones y jurisprudencia del Diario Oficial. No sustituye la asesoria legal de un especialista ni el procedimiento formal ante SUNAFIL."))
     
     pdf.output(output_path)
