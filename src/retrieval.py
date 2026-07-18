@@ -52,7 +52,7 @@ class SentenciasRetrieval:
         # Mapeo del régimen seleccionado a las categorías en la base de datos
         # Opciones esperadas: 'Privado (DL 728)', 'Público (Ley 24041 / DL 276)', 'CAS (DL 1057)'
         query_sql = f"""
-            SELECT ID, titulo, abstract_clean, metadata_pretension, regimen, similarity, url_pdf
+            SELECT ID, titulo, abstract_clean, metadata_pretension, regimen, similarity, url_pdf, metadata_norma_derecho, fecha
             FROM sentencias_temp
             WHERE regimen = '{regimen}'
               AND (titulo LIKE '%Fundada%' OR titulo LIKE '%Infundada%' OR titulo LIKE '%Improcedente%')
@@ -71,7 +71,9 @@ class SentenciasRetrieval:
                 "pretension": row['metadata_pretension'],
                 "regimen": row['regimen'],
                 "similitud": float(row['similarity']),
-                "url": row['url_pdf']
+                "url": row['url_pdf'],
+                "norma_derecho": row['metadata_norma_derecho'] if pd.notna(row['metadata_norma_derecho']) else "Ley 24041",
+                "fecha": str(row['fecha']) if pd.notna(row['fecha']) else "2020-01-01"
             })
             
         return results
