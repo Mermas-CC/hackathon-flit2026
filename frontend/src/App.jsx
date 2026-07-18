@@ -92,6 +92,34 @@ export default function App() {
     }
   };
 
+  // Intérprete simple de Markdown para mostrar el reporte de Gemini de forma limpia
+  const renderizarMarkdown = (texto) => {
+    if (!texto) return { __html: "" };
+    
+    // Escapar HTML para evitar XSS
+    let html = texto
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+      
+    // Títulos ###
+    html = html.replace(/^### (.*$)/gim, '<h5 class="text-xs md:text-sm font-bold text-sky-400 mt-4 mb-2">$1</h5>');
+    // Títulos ##
+    html = html.replace(/^## (.*$)/gim, '<h4 class="text-sm md:text-base font-bold text-sky-300 mt-5 mb-2 border-b border-slate-800 pb-1">$1</h4>');
+    // Títulos #
+    html = html.replace(/^# (.*$)/gim, '<h3 class="text-base md:text-lg font-bold text-white mt-6 mb-3">$1</h3>');
+    // Negritas **texto**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="text-sky-300 font-semibold">$1</strong>');
+    // Viñetas * item o - item
+    html = html.replace(/^\s*[\*\-]\s+(.*$)/gim, '<li class="ml-4 list-disc text-slate-300 my-1">$1</li>');
+    // Citas > texto
+    html = html.replace(/^\>\s+(.*$)/gim, '<blockquote class="border-l-4 border-purple-500 pl-3 italic text-slate-400 my-3">$1</blockquote>');
+    // Saltos de línea
+    html = html.replace(/\n/g, '<br />');
+
+    return { __html: html };
+  };
+
   // 1. Llamar al Diagnóstico
   const ejecutarDiagnostico = async () => {
     setCargandoDiagnostico(true);
@@ -478,36 +506,41 @@ export default function App() {
               </p>
             </div>
 
-            <div className="glass-panel p-6 rounded-2xl space-y-4 division-y division-slate-800">
-              {preguntas.map((p) => (
-                <div key={p.key} className="py-3 flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-                  <span className="text-sm font-medium text-slate-200">{p.label}</span>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name={p.key}
-                        value="Sí"
-                        checked={respuestasScorecard[p.key] === "Sí"}
-                        onChange={() => handleScorecardChange(p.key, "Sí")}
-                        className="w-4 h-4 text-sky-500 border-slate-700 bg-slate-900 focus:ring-sky-500"
-                      />
-                      <span className="text-sm">Sí</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name={p.key}
-                        value="No"
-                        checked={respuestasScorecard[p.key] === "No"}
-                        onChange={() => handleScorecardChange(p.key, "No")}
-                        className="w-4 h-4 text-sky-500 border-slate-700 bg-slate-900 focus:ring-sky-500"
-                      />
-                      <span className="text-sm">No</span>
-                    </label>
-                  </div>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {preguntas.map((p) => {
+                const esSi = respuestasScorecard[p.key] === "Sí";
+                return (
+                  <button
+                    key={p.key}
+                    onClick={() => handleScorecardChange(p.key, esSi ? "No" : "Sí")}
+                    className={`p-4 rounded-xl text-left border transition-all flex flex-col justify-between h-32 ${
+                      esSi 
+                        ? "bg-emerald-950/20 border-emerald-500/50 hover:bg-emerald-950/30" 
+                        : "bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-850"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center w-full">
+                      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Criterio de Subordinación
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        esSi ? "bg-emerald-950 text-emerald-400 border border-emerald-500/30" : "bg-slate-950 text-slate-500 border border-slate-800"
+                      }`}>
+                        {esSi ? "SÍ" : "NO"}
+                      </span>
+                    </div>
+                    <span className="text-xs md:text-sm font-medium text-slate-200 line-clamp-2 leading-relaxed">
+                      {p.label}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${esSi ? "bg-emerald-400 animate-pulse" : "bg-slate-600"}`} />
+                      <span className={`text-[10px] font-semibold ${esSi ? "text-emerald-400" : "text-slate-500"}`}>
+                        {esSi ? "Indicio de laboralidad marcado" : "No aplica"}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -750,9 +783,10 @@ export default function App() {
                   <span className="animate-pulse">●</span> Redactando análisis amigable...
                 </div>
               ) : explicacionIa ? (
-                <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                  {explicacionIa}
-                </div>
+                <div 
+                  className="text-sm text-slate-300 leading-relaxed space-y-1"
+                  dangerouslySetInnerHTML={renderizarMarkdown(explicacionIa)}
+                />
               ) : (
                 <p className="text-xs text-slate-500">
                   Ingresa tu API Key en la barra lateral para ver la explicación por IA del caso.
