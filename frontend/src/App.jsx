@@ -14,6 +14,9 @@ export default function App() {
     "Trabajé como asistente administrativo con recibos por honorarios, tenía un jefe directo que controlaba mi horario y usaba la laptop de la empresa."
   );
   const [esObreroMunicipal, setEsObreroMunicipal] = useState(false);
+  const [diasVacacionesTomadas, setDiasVacacionesTomadas] = useState(0);
+  const [ctsYaPagada, setCtsYaPagada] = useState(0.0);
+  const [gratifYaPagada, setGratifYaPagada] = useState(0.0);
 
   const [respuestasScorecard, setRespuestasScorecard] = useState({
     horario: "Sí",
@@ -65,7 +68,10 @@ export default function App() {
           sueldo: parseFloat(sueldo),
           resumen_hechos: resumenHechos,
           es_obrero_municipal: esObreroMunicipal,
-          respuestas_scorecard: respuestasScorecard
+          respuestas_scorecard: respuestasScorecard,
+          dias_vacaciones_tomadas: parseInt(diasVacacionesTomadas) || 0,
+          cts_ya_pagada: parseFloat(ctsYaPagada) || 0.0,
+          gratif_ya_pagada: parseFloat(gratifYaPagada) || 0.0
         })
       });
       if (!response.ok) {
@@ -101,7 +107,10 @@ export default function App() {
             fecha_inicio: fechaInicio,
             fecha_cese: fechaCese,
             sueldo: parseFloat(sueldo),
-            resumen_hechos: resumenHechos
+            resumen_hechos: resumenHechos,
+            dias_vacaciones_tomadas: parseInt(diasVacacionesTomadas) || 0,
+            cts_ya_pagada: parseFloat(ctsYaPagada) || 0.0,
+            gratif_ya_pagada: parseFloat(gratifYaPagada) || 0.0
           },
           scorecard_info: diagData.scorecard,
           liquidacion: diagData.liquidacion,
@@ -131,7 +140,10 @@ export default function App() {
             fecha_cese: fechaCese,
             sueldo: parseFloat(sueldo),
             resumen_hechos: resumenHechos,
-            es_obrero_municipal: esObreroMunicipal
+            es_obrero_municipal: esObreroMunicipal,
+            dias_vacaciones_tomadas: parseInt(diasVacacionesTomadas) || 0,
+            cts_ya_pagada: parseFloat(ctsYaPagada) || 0.0,
+            gratif_ya_pagada: parseFloat(gratifYaPagada) || 0.0
           },
           scorecard_info: diagnostico.scorecard,
           liquidacion: diagnostico.liquidacion,
@@ -312,6 +324,44 @@ export default function App() {
                   onChange={(e) => setSueldo(parseFloat(e.target.value))}
                 />
               </div>
+
+              {regimen === 'Privado (DL 728)' && (
+                <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                  <h4 className="text-xs font-bold text-sky-400 uppercase tracking-wider">🛠️ Personalizar Beneficios Recibidos (Deducciones)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">Días de vacaciones gozadas:</label>
+                      <input
+                        type="number"
+                        className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                        value={diasVacacionesTomadas}
+                        onChange={(e) => setDiasVacacionesTomadas(parseInt(e.target.value) || 0)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">CTS ya pagada (S/):</label>
+                      <input
+                        type="number"
+                        className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                        value={ctsYaPagada}
+                        onChange={(e) => setCtsYaPagada(parseFloat(e.target.value) || 0.0)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] text-slate-400 mb-1">Gratif. ya pagadas (S/):</label>
+                      <input
+                        type="number"
+                        className="w-full bg-slate-900 border border-slate-750 rounded-lg px-3 py-1.5 text-xs text-slate-200"
+                        value={gratifYaPagada}
+                        onChange={(e) => setGratifYaPagada(parseFloat(e.target.value) || 0.0)}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-500">
+                    * Si ya recibiste pagos parciales de CTS, gratificaciones o gozaste vacaciones, regístralos para deducirlos del cálculo.
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Describe los Hechos de tu Trabajo:</label>

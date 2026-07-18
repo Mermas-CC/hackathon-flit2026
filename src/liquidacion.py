@@ -25,6 +25,9 @@ def calcular_liquidacion_728(
     fecha_inicio: datetime.date,
     fecha_cese: datetime.date,
     sueldo: float,
+    dias_vacaciones_tomadas: int = 0,
+    cts_ya_pagada: float = 0.0,
+    gratif_ya_pagada: float = 0.0,
     fecha_calculo: datetime.date = None
 ) -> DetalleLiquidacion:
     if fecha_calculo is None:
@@ -42,19 +45,24 @@ def calcular_liquidacion_728(
     anios_desde_cese = dias_desde_cese / 365.25
     prescrito_totalmente = anios_desde_cese > 4.0
     
-    # Cálculos teóricos de Capital
+    # 1. CTS Computable (sueldo + 1/6 gratificación)
     base_cts = sueldo + (sueldo / 6.0)
-    cts_teorica = base_cts * (meses_totales / 12.0)
+    cts_bruta = base_cts * (meses_totales / 12.0)
+    cts_teorica = max(0.0, cts_bruta - cts_ya_pagada)
     
-    gratif_teorica = (sueldo * 2.0) * (meses_totales / 12.0)
+    # 2. Gratificaciones (1 sueldo completo por cada semestre)
+    gratif_bruta = (sueldo * 2.0) * (meses_totales / 12.0)
+    gratif_teorica = max(0.0, gratif_bruta - gratif_ya_pagada)
     bonif_teorica = gratif_teorica * 0.09
-    vac_teorica = sueldo * (meses_totales / 12.0)
+    
+    # 3. Vacaciones (30 días por año de labores = 2.5 días por mes)
+    dias_vacaciones_generados = meses_totales * 2.5
+    dias_vacaciones_reclamables = max(0.0, dias_vacaciones_generados - dias_vacaciones_tomadas)
+    vac_teorica = (sueldo / 30.0) * dias_vacaciones_reclamables
     
     capital_total = cts_teorica + gratif_teorica + vac_teorica + bonif_teorica
     
-    # 2. Interés Legal Laboral (Decreto Ley 25920)
-    # Tasa promedio referencial: 3% anual de interés laboral
-    # Se genera a partir del día siguiente del cese
+    # 4. Interés Legal Laboral (Decreto Ley 25920)
     if dias_desde_cese > 0:
         tasa_periodo = 0.03 * (dias_desde_cese / 365.25)
         interes_teorico = capital_total * tasa_periodo

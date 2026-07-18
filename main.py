@@ -41,6 +41,9 @@ class DiagnosticoRequest(BaseModel):
     resumen_hechos: str
     es_obrero_municipal: bool
     respuestas_scorecard: Dict[str, str]
+    dias_vacaciones_tomadas: Optional[int] = 0
+    cts_ya_pagada: Optional[float] = 0.0
+    gratif_ya_pagada: Optional[float] = 0.0
 
 class ExplicacionRequest(BaseModel):
     api_key: str
@@ -114,7 +117,14 @@ def procesar_diagnostico(req: DiagnosticoRequest):
     info_publico = None
     
     if req.regimen == 'Privado (DL 728)':
-        liq = calcular_liquidacion_728(f_inicio, f_cese, req.sueldo)
+        liq = calcular_liquidacion_728(
+            f_inicio, 
+            f_cese, 
+            req.sueldo,
+            dias_vacaciones_tomadas=req.dias_vacaciones_tomadas or 0,
+            cts_ya_pagada=req.cts_ya_pagada or 0.0,
+            gratif_ya_pagada=req.gratif_ya_pagada or 0.0
+        )
         liq_res = {
             "meses_totales": liq.meses_totales,
             "dias_totales": liq.dias_totales,
@@ -248,7 +258,10 @@ def descargar_reporte_pdf(req: PdfRequest):
         'fecha_cese': parse_date(req.datos_usuario['fecha_cese']),
         'sueldo': req.datos_usuario['sueldo'],
         'resumen_hechos': req.datos_usuario['resumen_hechos'],
-        'es_obrero_municipal': req.datos_usuario.get('es_obrero_municipal', False)
+        'es_obrero_municipal': req.datos_usuario.get('es_obrero_municipal', False),
+        'dias_vacaciones_tomadas': req.datos_usuario.get('dias_vacaciones_tomadas', 0),
+        'cts_ya_pagada': req.datos_usuario.get('cts_ya_pagada', 0.0),
+        'gratif_ya_pagada': req.datos_usuario.get('gratif_ya_pagada', 0.0)
     }
     
     try:
