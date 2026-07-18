@@ -1,96 +1,76 @@
-# ⚖️ MiLiqui (DesnaturalizaCheck 2.0)
+# MiLiqui
 
-> **De "buscador de casos" a "el único que te dice si la ley en la que se para tu caso todavía existe".**
-> Diagnóstico inteligente de desnaturalización de contratos laborales y cálculo de beneficios sociales para trabajadores de Perú.
+Estimacion de desnaturalizacion laboral y calculo de beneficios sociales para el mercado peruano.
 
-MiLiqui es una plataforma diseñada para hackathons que ayuda a locadores de servicios y trabajadores bajo regímenes CAS o informales a diagnosticar si su relación laboral fue encubierta bajo una simulación civil (desnaturalización de contrato) aplicando el **Principio de Primacía de la Realidad**.
-
----
-
-## 🚀 Características Clave
-
-1. **Diagnóstico e Indicios (Scorecard):** Evalúa el nivel de solidez jurídica de la desnaturalización mediante indicios clave (control de horario, subordinación, exclusividad, etc.).
-2. **Cálculo de Beneficios Sociales (Liquidación):** Estima el monto total de beneficios adeudados para el régimen privado (DL 728), desglosando:
-   - CTS Reclamable
-   - Gratificaciones Truncas
-   - Vacaciones No Gozadas / Truncas
-   - Bonificación Extraordinaria (9%)
-   - Interés Legal Laboral (DL 25920) acumulado automáticamente
-3. **Búsqueda Semántica de Precedentes (SBERT):** Recupera los 3 fallos judiciales más similares a los hechos del usuario a partir de un corpus filtrado de 2,386 sentencias reales utilizando embeddings vectoriales en español (`hiiamsid/sentence_similarity_spanish_es`).
-4. **Trazabilidad y Semáforo de Vigencia (El Peruano):** Compara las leyes que sustentan el fallo contra las fechas del diario oficial El Peruano para advertir mediante un semáforo (🟢 Vigente, 🟡 Modificada, 🔴 Derogada) si el precedente sigue siendo válido legalmente hoy en día.
-5. **Visor de Expedientes Interactivo (Drawer):** Un panel lateral deslizable que permite leer el resumen judicial sobre un folio físico simulado con **resaltado inteligente inline** de indicios clave (horario, subordinación, honorarios, etc.) y tooltips descriptivos.
-6. **Análisis Inteligente por IA (Gemini):** Genera una explicación estructurada en formato JSON para el usuario con un resumen empático, significado legal de los resultados y un plan de acción sugerido a modo de línea de tiempo.
-7. **Exportación a PDF:** Genera un reporte formal y descargable con el desglose del diagnóstico, cálculo financiero y jurisprudencia relevante.
+MiLiqui evalua si una relacion de locacion de servicios o regimen CAS califica como relacion de dependencia encubierta (desnaturalizacion de contrato) mediante el Principio de Primacia de la Realidad. Compara el caso del usuario con resoluciones del Diario Oficial El Peruano y jurisprudencia del Poder Judicial, calculando el importe de la deuda laboral estimada.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Componentes del Sistema
 
-### Backend (FastAPI)
-- **FastAPI / Uvicorn:** Framework asíncrono de alto rendimiento.
-- **DuckDB:** Base de datos analítica en memoria para búsquedas cruzadas rápidas de leyes y sentencias.
-- **SBERT (SentenceTransformers):** Generación de embeddings en español para la búsqueda semántica.
-- **Google GenAI (Gemini 2.5 Flash):** Resumen inteligente y empático estructurado en JSON.
-- **FPDF2:** Generador de reportes formales en formato PDF.
-
-### Frontend (React)
-- **React 19 & Vite:** Entorno de compilación ultra rápido.
-- **TailwindCSS 4.x:** Framework de estilos utilitarios modernos para la UI/UX premium oscura.
-
-### Servidor y Despliegue (Docker)
-- **Multi-stage Dockerfile:** Compila los recursos estáticos de React y los sirve con un reverse proxy en Nginx redireccionando la API `/api/*` al backend de forma segura y libre de CORS.
-
----
-
-## 📁 Estructura de Datos (Bajo la capota)
-El proyecto utiliza bases de datos analíticas optimizadas en formato Parquet:
-* `sentencias_desnat.parquet` - 2,386 sentencias judiciales filtradas por desnaturalización.
-* `embeddings.npy` - Vectores semánticos SBERT de las sentencias alinedos.
-* `normas_sumillas_limpias.parquet` - 15 leyes laborales núcleo en la base de datos de El Peruano.
-* `articulos_segmentados.parquet` - Texto completo artículo por artículo de las leyes.
-* `editora_consolidado.parquet` - Registro histórico de vigencia, modificaciones y derogaciones de normas de El Peruano.
+1. **Analisis de Indicios (Scorecard):** Cuestionario estructurado segun criterios vinculantes de la Corte Suprema para determinar la solidez del vinculo laboral (subordinacion, jornada y control directo).
+2. **Calculo de Beneficios Sociales (Liquidacion):** Estima el monto adeudado bajo el regimen laboral de la actividad privada (DL 728) por concepto de:
+   - Compensacion por Tiempo de Servicios (CTS).
+   - Gratificaciones legales (Julio y Diciembre).
+   - Vacaciones no gozadas o truncas.
+   - Bonificacion extraordinaria (Ley 29351).
+   - Interes legal laboral (DL 25920) devengado de forma diaria tras el cese.
+   - Filtro de prescripcion de 4 anos segun la Ley 27321.
+3. **Busqueda Semantica de Precedentes:** Recupera los 3 fallos judiciales de mayor similitud factica a partir de un corpus local de 2,386 sentencias reales, usando un modelo de embeddings en espanol (SBERT).
+4. **Validacion de Vigencia Normativa:** Cruza los articulos y leyes citados en el fallo con la base del Diario Oficial El Peruano para identificar si la norma continua vigente o ha sido modificada/derogada.
+5. **Visor de Folio Judicial:** Despliega el resumen de la sentencia en un formato de folio fisico, destacando de forma inline las marcas de indicios laborables identificados con notas explicativas.
+6. **Sintesis por Inteligencia Artificial:** Gemini 2.5 Flash procesa el diagnostico para estructurar un JSON con la sintesis del caso, interpretacion de resultados y un plan de accion ordenado por pasos.
+7. **Reporte Formal en PDF:** Generacion de un documento de diagnostico con la liquidacion de beneficios e historial de jurisprudencia ajustado a la paleta de colores de la aplicacion.
 
 ---
 
-## 💻 Configuración Local
+## Arquitectura y Datos
 
-### Prerrequisitos
-- Python 3.11+
-- Node.js v20+
-- pnpm (recomendado)
+- **Base de Datos:** DuckDB en memoria para cruces analiticos de sentencias y vigencia.
+- **Modelos de Lenguaje:** Gemini 2.5 Flash y SBERT (`hiiamsid/sentence_similarity_spanish_es`).
+- **Backend:** FastAPI expuesto mediante Uvicorn.
+- **Frontend:** React y TailwindCSS.
+- **Estructura de Datos (data/):**
+  - `sentencias_desnat.parquet` (2,386 sentencias procesadas).
+  - `embeddings.npy` (vectores semanticos de sentencias).
 
-### 1. Iniciar el Backend
-Desde la raíz del proyecto:
+---
+
+## Ejecucion Local
+
+### Requisitos
+- Python 3.11 o superior.
+- Node.js v20 o superior.
+
+### 1. Servidor Backend
+Desde el directorio raiz:
 ```bash
-# Crear entorno virtual
+# Entorno virtual e instalacion
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-
-# Instalar dependencias
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Ejecutar el backend (puerto 8000)
+# Iniciar servidor (puerto 8000)
 python main.py
 ```
 
-### 2. Iniciar el Frontend
-Desde la carpeta `frontend/`:
+### 2. Cliente Frontend
+Desde el directorio `frontend/`:
 ```bash
-# Copiar dependencias (si están en caché o localmente) e instalar
+# Instalacion de dependencias
 pnpm install
 
-# Lanzar el servidor de desarrollo Vite (puerto 5173 con proxy para la API en puerto 8000)
+# Iniciar servidor de desarrollo (puerto 5173 con proxy configurado al puerto 8000)
 npx vite
 ```
 
 ---
 
-## ☁️ Despliegue en Producción (ej. Railway)
+## Despliegue (Docker / Railway)
 
-El despliegue en Railway utiliza el archivo `docker-compose.yml` que empaqueta automáticamente el backend y el frontend. 
+La aplicacion esta configurada para desplegarse mediante contenedores multi-etapa usando el archivo `docker-compose.yml` de la raiz.
 
-1. Conecta tu repositorio de GitHub a **Railway**.
-2. Railway detectará la arquitectura multi-contenedor.
-3. Asegúrate de configurar la siguiente **Variable de Envtorno (Environment Variable)** en el panel de control del servicio de backend:
-   - `GEMINI_API_KEY`: Tu clave de API de Google Gemini (obtenida gratis en Google AI Studio).
-4. Railway asignará la URL pública HTTPS de forma automática al frontend de Nginx en el puerto 80.
+1. Conectar el repositorio en **Railway**.
+2. Declarar la variable de entorno obligatoria:
+   - `GEMINI_API_KEY`: Clave de acceso a Google AI Studio.
+3. El frontend compila de forma estatica y Nginx sirve la web en el puerto 80 redireccionando las peticiones de `/api/*` al backend de FastAPI.
