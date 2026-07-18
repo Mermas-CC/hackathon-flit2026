@@ -13,8 +13,12 @@ def explicar_caso(
     Utiliza la API de Gemini para generar una explicación amigable, clara y empática 
     de los resultados del caso para el trabajador.
     """
+    # Usar variable de entorno si no se recibe api_key por argumento
     if not api_key:
-        return "Para ver una explicación personalizada por Inteligencia Artificial, ingresa tu API Key de Gemini en la barra lateral."
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        
+    if not api_key:
+        return "Para ver una explicación personalizada por Inteligencia Artificial, ingresa tu API Key de Gemini en la barra lateral o confígurala como variable de entorno GEMINI_API_KEY."
         
     try:
         genai.configure(api_key=api_key)
