@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function App() {
   // Estados del Wizard
   const [paso, setPaso] = useState(1);
   const [apiKey, setApiKey] = useState("");
+  const [verAppFuncional, setVerAppFuncional] = useState(false);
   
   // Datos del Caso (Valores predeterminados para debug "Next, Next")
   const [regimen, setRegimen] = useState("Privado (DL 728)");
@@ -290,16 +291,28 @@ export default function App() {
     }
   };
 
+  if (!verAppFuncional) {
+    return <LandingPage onComenzar={() => setVerAppFuncional(true)} />;
+  }
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row text-slate-800">
       
       {/* --- PANEL LATERAL IZQUIERDO --- */}
       <aside className="w-full md:w-80 glass-panel p-6 flex flex-col border-b md:border-b-0 md:border-r border-slate-200/60">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-red-600">
-            MiLiqui
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">Diagnóstico inteligente v2.0</p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2 text-red-600">
+              MiLiqui
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">Diagnóstico inteligente v2.0</p>
+          </div>
+          <button 
+            onClick={() => setVerAppFuncional(false)}
+            className="text-[10px] text-slate-400 hover:text-red-600 transition-colors font-bold uppercase tracking-wider cursor-pointer"
+          >
+            ← Volver
+          </button>
         </div>
 
         {/* Ingresar API Key */}
@@ -1123,6 +1136,207 @@ export default function App() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function LandingPage({ onComenzar }) {
+  const [cargado, setCargado] = useState(false);
+  useEffect(() => {
+    setCargado(true);
+  }, []);
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-b from-slate-50/50 to-white text-slate-800 transition-opacity duration-700 ${cargado ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Floating Navbar */}
+      <nav className="fixed top-4 left-4 right-4 z-50 bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-2xl px-6 py-4 shadow-sm flex justify-between items-center max-w-6xl mx-auto animate-fade-in">
+        <div className="flex items-center gap-2">
+          <span className="font-newsreader text-2xl font-extrabold text-slate-900 tracking-tight">
+            MiLiqui<span className="inline-block w-1.5 h-1.5 bg-red-600 rounded-full ml-0.5"></span>
+          </span>
+        </div>
+        <div className="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-wider text-slate-500">
+          <a href="#inicio" className="hover:text-red-600 transition-colors">Inicio</a>
+          <a href="#features" className="hover:text-red-600 transition-colors">Pilares</a>
+          <a href="#estadisticas" className="hover:text-red-600 transition-colors">Datos</a>
+          <a href="#timeline" className="hover:text-red-600 transition-colors">Proceso</a>
+        </div>
+        <div>
+          <button 
+            onClick={onComenzar}
+            className="px-5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md hover:shadow-red-500/20 transition-all cursor-pointer"
+          >
+            Iniciar Diagnóstico
+          </button>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <header id="inicio" className="pt-32 pb-20 px-6 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center min-h-[90vh]">
+        <div className="lg:col-span-7 space-y-6">
+          <div className="inline-flex items-center px-3 py-1 rounded-full bg-red-50 border border-red-200 text-[10px] font-bold text-red-700 uppercase tracking-widest">
+            Primacía de la Realidad
+          </div>
+          <h1 className="font-newsreader text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.08] tracking-tight">
+            Tu trabajo fue real. Tu liquidación también debe serlo.
+          </h1>
+          <p className="text-base md:text-lg text-slate-600 leading-relaxed font-normal max-w-xl">
+            Compara tu situación real contra 2,386 fallos del Poder Judicial y el diario oficial El Peruano. Estima tu liquidación, intereses y vigencia de leyes al instante sin intermediarios.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <button
+              onClick={onComenzar}
+              className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold text-sm shadow-lg hover:shadow-red-500/25 transition-all transform hover:-translate-y-0.5 cursor-pointer text-center"
+            >
+              Evaluar mi caso gratis
+            </button>
+            <a
+              href="#features"
+              className="px-8 py-3.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-sm transition-all text-center"
+            >
+              Conocer pilares
+            </a>
+          </div>
+        </div>
+
+        {/* Hero SVG Illustration */}
+        <div className="lg:col-span-5 flex justify-center items-center">
+          <svg className="w-full max-w-[400px] h-auto" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="250" cy="250" r="180" fill="url(#heroGrad)" opacity="0.3" />
+            <rect x="130" y="100" width="240" height="300" rx="16" fill="white" stroke="#e2e8f0" strokeWidth="2" />
+            
+            <path d="M130 130H370" stroke="#f1f5f9" strokeWidth="2" />
+            <path d="M160 180H340" stroke="#dc2626" strokeWidth="4" strokeLinecap="round" />
+            <path d="M160 220H300" stroke="#475569" strokeWidth="3" strokeLinecap="round" />
+            <path d="M160 250H320" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
+            <path d="M160 280H260" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round" />
+            
+            <rect x="270" y="290" width="80" height="40" rx="6" fill="#fef2f2" stroke="#b91c1c" strokeWidth="1.5" strokeDasharray="3 3" />
+            <text x="310" y="314" fill="#b91c1c" fontSize="10" fontFamily="Outfit" fontWeight="bold" textAnchor="middle">VIGENTE</text>
+            
+            <path d="M210 360C210 330 290 330 290 360" stroke="#475569" strokeWidth="3" strokeLinecap="round" />
+            <circle cx="250" cy="380" r="12" fill="#e11d48" />
+            
+            <defs>
+              <linearGradient id="heroGrad" x1="130" y1="100" x2="370" y2="400" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#fee2e2" />
+                <stop offset="1" stopColor="#fecaca" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </header>
+
+      {/* Stats Section */}
+      <section id="estadisticas" className="py-16 bg-slate-50 border-y border-slate-200/60 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-200">
+            <div className="p-4 space-y-2">
+              <h3 className="font-newsreader text-5xl font-extrabold text-red-600">72.4%</h3>
+              <p className="text-xs uppercase tracking-wider font-bold text-slate-500">Tasa de Informalidad</p>
+              <p className="text-xs text-slate-550 max-w-[240px] mx-auto">Trabajadores peruanos contratados fraudulentamente bajo locación de servicios.</p>
+            </div>
+            <div className="p-4 space-y-2">
+              <h3 className="font-newsreader text-5xl font-extrabold text-slate-800">S/ 84M+</h3>
+              <p className="text-xs uppercase tracking-wider font-bold text-slate-500">Deuda Estimada Regional</p>
+              <p className="text-xs text-slate-550 max-w-[240px] mx-auto">Monto acumulado a favor de los trabajadores en litigios de desnaturalización.</p>
+            </div>
+            <div className="p-4 space-y-2">
+              <h3 className="font-newsreader text-5xl font-extrabold text-slate-800">2,386</h3>
+              <p className="text-xs uppercase tracking-wider font-bold text-slate-500">Precedentes Analizados</p>
+              <p className="text-xs text-slate-550 max-w-[240px] mx-auto">Casos reales del Poder Judicial enlazados y verificados con El Peruano.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Section (Pilares) */}
+      <section id="features" className="py-24 px-6 max-w-6xl mx-auto space-y-16">
+        <div className="text-center max-w-2xl mx-auto space-y-4">
+          <h2 className="font-newsreader text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">
+            Pilares de la Auditoría Laboral
+          </h2>
+          <p className="text-sm text-slate-500">
+            Nuestra arquitectura cruza la realidad de tu trabajo diario con la validez de la legislación vigente.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="bg-white border border-slate-200 p-8 rounded-2xl space-y-4 shadow-sm hover:border-red-400 transition-all duration-300">
+            <div className="w-10 h-10 bg-red-50 text-red-650 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v17M12 5l-8 3 8 3 8-3-8-3zM4 8v6c0 3 4 5 8 5s8-2 8-5V8" /></svg>
+            </div>
+            <h4 className="text-base font-bold text-slate-900">Rigor del DL 728</h4>
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              Calculamos de manera exacta gratificaciones truncas, CTS acumulada y vacaciones no gozadas de acuerdo con la legislación laboral privada.
+            </p>
+          </div>
+
+          <div className="bg-white border border-slate-200 p-8 rounded-2xl space-y-4 shadow-sm hover:border-red-400 transition-all duration-300">
+            <div className="w-10 h-10 bg-red-50 text-red-650 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            </div>
+            <h4 className="text-base font-bold text-slate-900">Semáforo de Vigencia</h4>
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              Comparamos la ley del precedente contra la base del Diario Oficial El Peruano para asegurar que la norma sigue viva y no ha sido derogada.
+            </p>
+          </div>
+
+          <div className="bg-white border border-slate-200 p-8 rounded-2xl space-y-4 shadow-sm hover:border-red-400 transition-all duration-300">
+            <div className="w-10 h-10 bg-red-50 text-red-650 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+            </div>
+            <h4 className="text-base font-bold text-slate-900">Búsqueda Semántica</h4>
+            <p className="text-xs text-slate-500 leading-relaxed font-normal">
+              Encontramos las sentencias judiciales con mayor similitud a tus hechos mediante emparejamiento vectorial semántico en español.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Timeline Section */}
+      <section id="timeline" className="py-20 bg-slate-50 border-t border-slate-200/60 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-5 space-y-6">
+            <h2 className="font-newsreader text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">
+              Un diagnóstico en tres sencillos pasos
+            </h2>
+            <p className="text-sm text-slate-550 leading-relaxed font-normal">
+              Evalúa la laboralidad de tus servicios sin contratos complejos ni consultorías legales costosas.
+            </p>
+            <button
+              onClick={onComenzar}
+              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer"
+            >
+              Comenzar Diagnóstico
+            </button>
+          </div>
+
+          <div className="lg:col-span-7 space-y-6 relative pl-6 border-l border-slate-200">
+            <div className="space-y-1 relative">
+              <span className="absolute -left-[37px] top-0.5 w-5 h-5 rounded-full bg-red-600 border border-white text-white flex items-center justify-center text-[10px] font-bold">1</span>
+              <h5 className="text-sm font-bold text-slate-900">Detalla tu Relación</h5>
+              <p className="text-xs text-slate-550">Ingresa tus fechas de servicio, sueldo bruto y describe cómo trabajabas cotidianamente.</p>
+            </div>
+            <div className="space-y-1 relative">
+              <span className="absolute -left-[37px] top-0.5 w-5 h-5 rounded-full bg-slate-800 border border-white text-white flex items-center justify-center text-[10px] font-bold">2</span>
+              <h5 className="text-sm font-bold text-slate-900">Marca los Indicios</h5>
+              <p className="text-xs text-slate-550">Responde a criterios concretos de subordinación, como el control de horarios y uso de herramientas.</p>
+            </div>
+            <div className="space-y-1 relative">
+              <span className="absolute -left-[37px] top-0.5 w-5 h-5 rounded-full bg-slate-800 border border-white text-white flex items-center justify-center text-[10px] font-bold">3</span>
+              <h5 className="text-sm font-bold text-slate-900">Obtén tu Análisis</h5>
+              <p className="text-xs text-slate-550">Visualiza tu liquidación, jurisprudencia con resaltado inteligente y tu reporte descargable en PDF.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-slate-200 px-6 text-center text-xs text-slate-400 max-w-6xl mx-auto space-y-2">
+        <p className="font-semibold text-slate-700">MiLiqui © 2026. Todos los derechos reservados.</p>
+        <p>Herramienta diseñada con fines demostrativos y de asesoría preliminar legal.</p>
+      </footer>
     </div>
   );
 }

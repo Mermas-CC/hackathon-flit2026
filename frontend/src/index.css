@@ -31,3 +31,10 @@
   transform: translateY(-2px);
 }
 
+.font-newsreader {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
