@@ -297,7 +297,7 @@ export default function App() {
       <aside className="w-full md:w-80 glass-panel p-6 flex flex-col border-b md:border-b-0 md:border-r border-slate-700/50">
         <div className="mb-8">
           <h2 className="text-2xl font-bold flex items-center gap-2 text-sky-400">
-            ⚖️ DesnaturalizaCheck
+            MiLiqui
           </h2>
           <p className="text-xs text-slate-400 mt-1">Diagnóstico inteligente v2.0</p>
         </div>
