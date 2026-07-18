@@ -31,13 +31,15 @@ export default function App() {
 
   // Resultados de la API
   const [diagnostico, setDiagnostico] = useState(null);
-  const [explicacionIa, setExplicacionIa] = useState("");
+  const [explicacionIa, setExplicacionIa] = useState(null);
   const [cargandoDiagnostico, setCargandoDiagnostico] = useState(false);
   const [cargandoIa, setCargandoIa] = useState(false);
   const [cargandoPdf, setCargandoPdf] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [cargandoBoleta, setCargandoBoleta] = useState(false);
   const [msgBoleta, setMsgBoleta] = useState("");
+  const [precedenteSeleccionado, setPrecedenteSeleccionado] = useState(0);
+  const [sidepanelAbierto, setSidepanelAbierto] = useState(false);
 
   // Preguntas del Scorecard
   const preguntas = [
@@ -55,6 +57,51 @@ export default function App() {
     setRespuestasScorecard(prev => ({ ...prev, [key]: value }));
   };
 
+  const renderTextoResaltado = (texto) => {
+    if (!texto) return "";
+    
+    // Regex matching important indicators
+    const regex = /(subordinación|relación de dependencia|bajo la dirección|instrucciones|órdenes|jefe inmediato|jefe de área|supervisión|horario de trabajo|marcar asistencia|registro de asistencia|control de asistencia|jornada laboral|horario fijo|recibos por honorarios|locación de servicios|pago mensual|contraprestación|sueldo|boletas de pago|sueldo mensual|exclusividad|exclusivo|permanencia|tiempo completo|duración ininterrumpida|continuidad|desnaturalización|desnaturalizado|primacía de la realidad|contrato de trabajo indeterminado)/gi;
+    
+    const partes = texto.split(regex);
+    return partes.map((parte, index) => {
+      const parteLower = parte.toLowerCase();
+      
+      let label = "";
+      let classes = "";
+      
+      if (/(subordinación|relación de dependencia|bajo la dirección|instrucciones|órdenes|jefe inmediato|jefe de área|supervisión)/.test(parteLower)) {
+        label = "Indicio: Subordinación Directa";
+        classes = "bg-purple-500/25 text-purple-200 border-b-2 border-purple-500 px-0.5 rounded-t cursor-help relative group";
+      } else if (/(horario de trabajo|marcar asistencia|registro de asistencia|control de asistencia|jornada laboral|horario fijo)/.test(parteLower)) {
+        label = "Indicio: Horario y Jornada Controlada";
+        classes = "bg-amber-500/25 text-amber-200 border-b-2 border-amber-500 px-0.5 rounded-t cursor-help relative group";
+      } else if (/(recibos por honorarios|locación de servicios|pago mensual|contraprestación|sueldo|boletas de pago|sueldo mensual)/.test(parteLower)) {
+        label = "Indicio: Pago Recurrente (Simulación)";
+        classes = "bg-emerald-500/25 text-emerald-200 border-b-2 border-emerald-500 px-0.5 rounded-t cursor-help relative group";
+      } else if (/(exclusividad|exclusivo|permanencia|tiempo completo|duración ininterrumpida|continuidad)/.test(parteLower)) {
+        label = "Indicio: Exclusividad y Continuidad";
+        classes = "bg-sky-500/25 text-sky-200 border-b-2 border-sky-500 px-0.5 rounded-t cursor-help relative group";
+      } else if (/(desnaturalización|desnaturalizado|primacía de la realidad|contrato de trabajo indeterminado)/.test(parteLower)) {
+        label = "Principio de Primacía de la Realidad";
+        classes = "bg-rose-500/25 text-rose-200 border-b-2 border-rose-500 px-0.5 rounded-t cursor-help relative group";
+      }
+      
+      if (label) {
+        return (
+          <span key={index} className={classes}>
+            {parte}
+            <span className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2.5 py-1 text-[10px] font-sans font-semibold bg-slate-950 text-slate-100 rounded border border-slate-700 shadow-xl whitespace-nowrap z-50">
+              {label}
+            </span>
+          </span>
+        );
+      }
+      
+      return parte;
+    });
+  };
+
   const analizarBoletaImagen = async (file) => {
     setCargandoBoleta(true);
     setMsgBoleta("");
@@ -64,7 +111,7 @@ export default function App() {
       formData.append("file", file);
       formData.append("api_key", apiKey);
 
-      const response = await fetch("http://localhost:8000/api/analizar-boleta", {
+      const response = await fetch("/api/analizar-boleta", {
         method: "POST",
         body: formData
       });
@@ -97,7 +144,7 @@ export default function App() {
     setCargandoDiagnostico(true);
     setErrorMsg("");
     try {
-      const response = await fetch("http://localhost:8000/api/diagnostico", {
+      const response = await fetch("/api/diagnostico", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -136,7 +183,7 @@ export default function App() {
   const solicitarExplicacionIa = async (diagData) => {
     setCargandoIa(true);
     try {
-      const response = await fetch("http://localhost:8000/api/explicar-ia", {
+      const response = await fetch("/api/explicar-ia", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -159,7 +206,17 @@ export default function App() {
       const data = await response.json();
       setExplicacionIa(data.explicacion);
     } catch (e) {
-      setExplicacionIa(`Error al generar análisis con IA: ${e.message}`);
+      setExplicacionIa({
+        error: true,
+        resumen: "Error al generar análisis con IA",
+        significado: "No se pudo establecer conexión con el servicio de análisis de Inteligencia Artificial.",
+        analisis_detalle: e.message,
+        pasos_sugeridos: [
+          "Verifica que el servidor backend esté corriendo.",
+          "Comprueba tu conexión de red.",
+          "Intenta presionar 'Calcular Diagnóstico' nuevamente."
+        ]
+      });
     } finally {
       setCargandoIa(false);
     }
@@ -169,7 +226,7 @@ export default function App() {
   const descargarPdf = async () => {
     setCargandoPdf(true);
     try {
-      const response = await fetch("http://localhost:8000/api/reporte-pdf", {
+      const response = await fetch("/api/reporte-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -657,22 +714,22 @@ export default function App() {
                 )}
               </div>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {diagnostico.sentencias.map((sent, index) => {
                   // Colores del fallo
                   let colorFallo = "text-slate-400 border-slate-800 bg-slate-950/40";
-                  let falloLabel = "Criterio Judicial";
+                  let falloLabel = "Criterio";
                   
                   const textLower = (sent.titulo + " " + sent.abstract).toLowerCase();
                   if (textLower.includes("infundada")) {
                     colorFallo = "text-rose-400 border-rose-500/20 bg-rose-950/20";
-                    falloLabel = "Infundada (A favor del empleador)";
+                    falloLabel = "Infundada";
                   } else if (textLower.includes("fundada") || textLower.includes("fundado")) {
                     colorFallo = "text-emerald-400 border-emerald-500/20 bg-emerald-950/20";
-                    falloLabel = "Fundada (A favor del trabajador)";
+                    falloLabel = "Fundada";
                   } else if (textLower.includes("improcedente")) {
                     colorFallo = "text-slate-400 border-slate-700/20 bg-slate-850/20";
-                    falloLabel = "Improcedente (Aspecto formal)";
+                    falloLabel = "Improcedente";
                   }
                   
                   // Color del semáforo de vigencia de El Peruano
@@ -683,57 +740,64 @@ export default function App() {
                     colorVigencia = "text-amber-400 bg-amber-950/40 border-amber-500/20";
                   }
 
+                  const similitudPct = sent.similitud * 100;
+                  let colorSimilitudBar = "bg-sky-500";
+                  if (similitudPct >= 80) colorSimilitudBar = "bg-emerald-500";
+                  else if (similitudPct >= 60) colorSimilitudBar = "bg-amber-500";
+
                   return (
-                    <div key={index} className="glass-panel p-5 rounded-xl space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h5 className="font-bold text-sky-400 text-sm">
-                            Caso {index + 1}: {sent.titulo}
-                          </h5>
-                          <span className="text-[10px] text-slate-500">Coincidencia: {(sent.similitud * 100).toFixed(1)}%</span>
+                    <div 
+                      key={index} 
+                      className="glass-panel p-5 rounded-xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all duration-300 shadow-md group relative hover:-translate-y-0.5"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                            Caso {index + 1}
+                          </span>
+                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${colorFallo}`}>
+                            {falloLabel}
+                          </span>
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded border ${colorFallo}`}>
-                          {falloLabel}
-                        </span>
-                      </div>
-                      
-                      {/* Estado Ley El Peruano */}
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${colorVigencia}`}>
-                          {sent.vigencia_info?.estado}
-                        </span>
-                        <span className="text-slate-400 text-[11px]">
-                          {sent.vigencia_info?.detalle}
-                        </span>
+
+                        <h5 className="font-bold text-slate-100 text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-sky-400 transition-colors duration-200" title={sent.titulo}>
+                          {sent.titulo}
+                        </h5>
+
+                        {/* Coincidencia visual */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-500">Coincidencia factual</span>
+                            <span className="text-slate-300 font-semibold">{similitudPct.toFixed(1)}%</span>
+                          </div>
+                          <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${colorSimilitudBar}`}
+                              style={{ width: `${similitudPct}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Estado El Peruano */}
+                        <div className="flex items-center gap-1.5 text-[10px] bg-slate-950/30 p-2 rounded border border-slate-900">
+                          <span className={`w-2 h-2 rounded-full ${
+                            sent.vigencia_info?.estado?.includes("Derog") ? "bg-red-500" : sent.vigencia_info?.estado?.includes("Modific") ? "bg-amber-500" : "bg-emerald-500"
+                          }`} />
+                          <span className="text-slate-400 truncate" title={sent.vigencia_info?.detalle}>
+                            {sent.vigencia_info?.estado || "Sin registro"} - {sent.vigencia_info?.detalle?.substring(0, 20)}...
+                          </span>
+                        </div>
                       </div>
 
-                      <p className="text-xs text-slate-300 leading-relaxed">
-                        {sent.abstract.substring(0, 320)}...
-                      </p>
-                      
-                      <div className="flex justify-between items-center pt-2">
-                        <a 
-                          href={sent.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs text-sky-400 font-bold hover:underline"
-                        >
-                          📄 Descargar Expediente Completo (PDF Oficial) ↗️
-                        </a>
-                      </div>
-
-                      {/* Expansor del artículo citador */}
-                      {sent.articulo_info && (
-                        <div className="bg-slate-950/40 rounded-lg p-3 border border-slate-800/80 text-xs">
-                          <p className="font-bold text-slate-300 mb-1">
-                            📖 Fundamento legal citado: {sent.articulo_info.titulo_norma} - {sent.articulo_info.num_articulo}
-                          </p>
-                          <p className="text-[11px] text-slate-400 italic mb-2">"{sent.articulo_info.sumilla}"</p>
-                          <blockquote className="border-l-2 border-sky-500 pl-2 text-slate-300 font-mono text-[11px]">
-                            {sent.articulo_info.texto_articulo}
-                          </blockquote>
-                        </div>
-                      )}
+                      <button
+                        onClick={() => {
+                          setPrecedenteSeleccionado(index);
+                          setSidepanelAbierto(true);
+                        }}
+                        className="w-full py-2.5 px-4 rounded bg-sky-600/10 hover:bg-sky-600 text-sky-400 hover:text-white border border-sky-500/20 hover:border-sky-500 text-xs font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        🔍 Ver Análisis de Similitud
+                      </button>
                     </div>
                   );
                 })}
@@ -741,22 +805,117 @@ export default function App() {
             </div>
 
             {/* Informe de IA */}
-            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4">
-              <h4 className="text-lg font-bold flex items-center gap-2 text-purple-400">
-                🤖 Explicación del Caso por IA (Gemini 2.5)
-              </h4>
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl space-y-6 backdrop-blur-sm shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h4 className="text-lg font-bold flex items-center gap-2 text-purple-400">
+                  🤖 Análisis Inteligente del Caso (Gemini AI)
+                </h4>
+                {explicacionIa && !explicacionIa.error && (
+                  <span className="bg-purple-500/10 text-purple-400 text-xs px-2.5 py-1 rounded-full border border-purple-500/20 font-medium">
+                    Análisis Estructurado
+                  </span>
+                )}
+              </div>
+
               {cargandoIa ? (
-                <div className="text-sm text-slate-400 flex items-center gap-2">
-                  <span className="animate-pulse">●</span> Redactando análisis amigable...
+                <div className="flex flex-col items-center justify-center py-8 space-y-3">
+                  <div className="relative w-12 h-12">
+                    <div className="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-t-purple-500 rounded-full animate-spin"></div>
+                  </div>
+                  <p className="text-sm text-slate-400 animate-pulse font-medium">
+                    La Inteligencia Artificial está analizando los hechos, cálculo de liquidación y jurisprudencia...
+                  </p>
                 </div>
               ) : explicacionIa ? (
-                <div className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">
-                  {explicacionIa}
+                <div className="space-y-6">
+                  {/* Resumen Principal */}
+                  <div className={`p-5 rounded-xl border flex items-start gap-4 ${
+                    explicacionIa.error 
+                      ? "bg-red-950/15 border-red-500/20 text-red-300" 
+                      : "bg-gradient-to-r from-purple-950/20 to-indigo-950/20 border-purple-500/25 text-purple-100"
+                  }`}>
+                    <div className={`p-2 rounded-lg text-lg flex items-center justify-center mt-0.5 ${
+                      explicacionIa.error ? "bg-red-500/10" : "bg-purple-500/10"
+                    }`}>
+                      {explicacionIa.error ? "⚠️" : "💡"}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-purple-400">Resumen del caso</p>
+                      <p className="text-base font-medium leading-relaxed">{explicacionIa.resumen}</p>
+                    </div>
+                  </div>
+
+                  {/* Cuerpo del diagnóstico en dos tarjetas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Tarjeta 1: Significado */}
+                    <div className="bg-slate-900 border border-slate-800 hover:border-violet-500/30 transition-all duration-300 p-5 rounded-xl space-y-3 shadow-md flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-violet-400 font-semibold text-sm">
+                          <span className="p-1.5 rounded-lg bg-violet-500/10 text-base">⚖️</span>
+                          ¿Qué significa esto para ti?
+                        </div>
+                        <p className="text-sm text-slate-300 leading-relaxed font-normal">
+                          {explicacionIa.significado}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tarjeta 2: Análisis Detalle */}
+                    <div className={`bg-slate-900 border border-slate-800 transition-all duration-300 p-5 rounded-xl space-y-3 shadow-md flex flex-col justify-between ${
+                      diagnostico?.liquidacion 
+                        ? "hover:border-emerald-500/30" 
+                        : "hover:border-cyan-500/30"
+                    }`}>
+                      <div className="space-y-2">
+                        <div className={`flex items-center gap-2 font-semibold text-sm ${
+                          diagnostico?.liquidacion ? "text-emerald-400" : "text-cyan-400"
+                        }`}>
+                          <span className={`p-1.5 rounded-lg text-base ${
+                            diagnostico?.liquidacion ? "bg-emerald-500/10" : "bg-cyan-500/10"
+                          }`}>
+                            {diagnostico?.liquidacion ? "💰" : "👔"}
+                          </span>
+                          {diagnostico?.liquidacion ? "Análisis de Beneficios y CTS" : "Estabilidad y Reincorporación"}
+                        </div>
+                        <p className="text-sm text-slate-300 leading-relaxed font-normal">
+                          {explicacionIa.analisis_detalle}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pasos sugeridos / Línea de tiempo */}
+                  <div className="bg-slate-900/40 border border-slate-800 p-5 rounded-xl space-y-4">
+                    <h5 className="text-sm font-semibold text-slate-200 flex items-center gap-2">
+                      <span className="p-1 rounded-md bg-slate-850">📋</span>
+                      Pasos sugeridos a seguir
+                    </h5>
+                    
+                    <div className="relative pl-6 border-l border-slate-800 space-y-6">
+                      {explicacionIa.pasos_sugeridos && explicacionIa.pasos_sugeridos.map((paso, idx) => (
+                        <div key={idx} className="relative group">
+                          {/* Círculo número */}
+                          <div className="absolute -left-[39px] top-0.5 w-6 h-6 rounded-full bg-gradient-to-b from-purple-500 to-indigo-600 border border-slate-900 text-white flex items-center justify-center text-xs font-bold shadow-md transition-all group-hover:scale-110 duration-200">
+                            {idx + 1}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm text-slate-300 leading-relaxed font-normal group-hover:text-slate-100 transition-colors duration-200">
+                              {paso}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <p className="text-xs text-slate-500">
-                  Ingresa tu API Key en la barra lateral para ver la explicación por IA del caso.
-                </p>
+                <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
+                  <div className="text-2xl text-slate-600">🗝️</div>
+                  <p className="text-sm text-slate-400 max-w-sm">
+                    Ingresa tu API Key de Gemini en la barra lateral para recibir un resumen y recomendación inteligente de este caso.
+                  </p>
+                </div>
               )}
             </div>
 
@@ -780,6 +939,173 @@ export default function App() {
         )}
 
       </main>
+
+      {/* Side Panel / Offcanvas Drawer for Precedent Detail */}
+      {diagnostico && (
+        <>
+          {/* Backdrop overlay with blur */}
+          <div 
+            className={`fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+              sidepanelAbierto ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => setSidepanelAbierto(false)}
+          />
+
+          {/* Drawer container */}
+          <div 
+            className={`fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col justify-between transform transition-transform duration-300 ease-in-out ${
+              sidepanelAbierto ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-slate-850 space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400 text-sm">🏛️</span>
+                  <h4 className="text-base font-bold text-slate-100 uppercase tracking-wide">
+                    Análisis de Precedente
+                  </h4>
+                </div>
+                <button 
+                  onClick={() => setSidepanelAbierto(false)}
+                  className="p-2 rounded-lg hover:bg-slate-900 text-slate-400 hover:text-slate-100 transition-colors duration-200 text-sm cursor-pointer"
+                >
+                  ✕ Cerrar
+                </button>
+              </div>
+
+              {/* Tabs for selecting case inside the drawer */}
+              <div className="flex bg-slate-900/60 p-1 rounded-lg border border-slate-900">
+                {diagnostico.sentencias.map((s, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setPrecedenteSeleccionado(idx)}
+                    className={`flex-1 text-center py-2 text-xs font-bold rounded-md transition-all duration-200 cursor-pointer ${
+                      precedenteSeleccionado === idx 
+                        ? "bg-sky-600 text-white shadow" 
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Caso {idx + 1}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Body */}
+            {diagnostico.sentencias[precedenteSeleccionado] && (() => {
+              const activeSent = diagnostico.sentencias[precedenteSeleccionado];
+              
+              // Fallo styling
+              let colorFallo = "text-slate-400 border-slate-800 bg-slate-950/40";
+              let falloLabel = "Criterio Judicial";
+              const textLower = (activeSent.titulo + " " + activeSent.abstract).toLowerCase();
+              if (textLower.includes("infundada")) {
+                colorFallo = "text-rose-400 border-rose-500/20 bg-rose-950/20";
+                falloLabel = "Infundada (A favor del empleador)";
+              } else if (textLower.includes("fundada") || textLower.includes("fundado")) {
+                colorFallo = "text-emerald-400 border-emerald-500/20 bg-emerald-950/20";
+                falloLabel = "Fundada (A favor del trabajador)";
+              } else if (textLower.includes("improcedente")) {
+                colorFallo = "text-slate-400 border-slate-700/20 bg-slate-850/20";
+                falloLabel = "Improcedente (Aspecto formal)";
+              }
+
+              // Vigencia styling
+              let colorVigencia = "text-emerald-400 bg-emerald-950/40 border-emerald-500/20";
+              if (activeSent.vigencia_info?.estado?.includes("Derog")) {
+                colorVigencia = "text-rose-400 bg-rose-950/40 border-rose-500/20";
+              } else if (activeSent.vigencia_info?.estado?.includes("Modific")) {
+                colorVigencia = "text-amber-400 bg-amber-950/40 border-amber-500/20";
+              }
+
+              return (
+                <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                  {/* Ficha Técnica Metadata */}
+                  <div className="bg-slate-900 border border-slate-850 p-4 rounded-xl space-y-3 shadow-md">
+                    <h5 className="text-sm font-bold text-slate-100">{activeSent.titulo}</h5>
+                    
+                    <div className="grid grid-cols-2 gap-3 pt-2 text-xs">
+                      <div className="space-y-1">
+                        <span className="text-slate-500 block">Similitud Factual</span>
+                        <span className="text-sky-400 font-bold text-sm">{(activeSent.similitud * 100).toFixed(1)}% de coincidencia</span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-500 block">Sentido de Decisión</span>
+                        <span className={`inline-block font-semibold px-2 py-0.5 rounded border text-[10px] ${colorFallo}`}>
+                          {falloLabel}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-500 block">Estado de Norma Citada</span>
+                        <span className={`inline-block font-semibold px-2 py-0.5 rounded border text-[10px] ${colorVigencia}`}>
+                          {activeSent.vigencia_info?.estado || "Sin registro"}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-slate-500 block">Fecha/Región del Fallo</span>
+                        <span className="text-slate-300 font-semibold">{activeSent.fecha || "No disponible"}</span>
+                      </div>
+                    </div>
+
+                    {activeSent.vigencia_info?.detalle && (
+                      <p className="text-[10px] text-slate-400 border-t border-slate-800 pt-2 italic leading-relaxed">
+                        📍 <strong>Nota de El Peruano:</strong> {activeSent.vigencia_info.detalle}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Document Paper Container */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-400 block uppercase tracking-wider">
+                      📄 Vista del Folio / Abstract Resaltado:
+                    </label>
+                    <div className="bg-white text-slate-800 p-8 rounded-xl shadow-inner font-serif leading-relaxed text-sm border-l-4 border-amber-300 relative select-text">
+                      {/* Sello Judicial Mock */}
+                      <div className="absolute top-4 right-4 text-[9px] font-sans font-bold border-2 border-red-500/30 text-red-500/40 uppercase tracking-widest px-2 py-1 transform rotate-12 select-none pointer-events-none">
+                        Expediente Judicial
+                      </div>
+                      <p className="whitespace-pre-line text-justify leading-relaxed">
+                        {renderTextoResaltado(activeSent.abstract)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Fundamento Legal Citado (El Peruano) */}
+                  {activeSent.articulo_info && (
+                    <div className="bg-slate-900 border border-slate-850 p-5 rounded-xl space-y-3">
+                      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <span className="text-base">📖</span>
+                        <h6 className="text-xs font-bold text-slate-200">
+                          Fundamento Legal Citado: {activeSent.articulo_info.titulo_norma} (Art. {activeSent.articulo_info.num_articulo})
+                        </h6>
+                      </div>
+                      <p className="text-[11px] text-slate-400 italic">"{activeSent.articulo_info.sumilla}"</p>
+                      <blockquote className="border-l-2 border-sky-500 pl-3 text-slate-300 font-mono text-xs bg-slate-950/40 p-3 rounded">
+                        {renderTextoResaltado(activeSent.articulo_info.texto_articulo)}
+                      </blockquote>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Footer containing action buttons */}
+            {diagnostico.sentencias[precedenteSeleccionado] && (
+              <div className="p-4 border-t border-slate-850 bg-slate-950 flex gap-3">
+                <a
+                  href={diagnostico.sentencias[precedenteSeleccionado].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-400 hover:to-sky-500 text-white font-bold rounded-lg text-xs text-center shadow-md transition-all duration-200 cursor-pointer"
+                >
+                  📄 Descargar Expediente Completo (PDF Oficial) ↗️
+                </a>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }

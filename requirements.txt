@@ -6,3 +6,6 @@ streamlit
 fpdf2
 fastapi
 uvicorn
+duckdb
+google-generativeai
+python-multipart

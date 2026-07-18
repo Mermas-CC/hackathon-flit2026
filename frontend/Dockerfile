@@ -19,6 +19,7 @@ RUN pnpm build
 # Etapa 2: Servir los archivos construidos usando Nginx
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Nginx corre en el puerto 80 por defecto
 EXPOSE 80

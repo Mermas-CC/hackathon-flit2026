@@ -1,4 +1,5 @@
 import os
+import json
 import google.generativeai as genai
 from typing import Any, List, Dict
 
@@ -8,13 +9,22 @@ def explicar_caso(
     scorecard: Dict[str, Any], 
     liquidacion: Any, 
     sentencias: List[Dict[str, Any]]
-) -> str:
+) -> Dict[str, Any]:
     """
     Utiliza la API de Gemini para generar una explicación amigable, clara y empática 
-    de los resultados del caso para el trabajador.
+    de los resultados del caso para el trabajador en un formato estructurado JSON.
     """
     if not api_key:
-        return "Para ver una explicación personalizada por Inteligencia Artificial, ingresa tu API Key de Gemini en la barra lateral."
+        return {
+            "resumen": "Clave API de Gemini no configurada.",
+            "significado": "Para recibir un análisis de tu caso impulsado por Inteligencia Artificial, ingresa tu API Key de Gemini en el panel lateral.",
+            "analisis_detalle": "La IA te ayudará a interpretar el cálculo de la liquidación, el nivel de desnaturalización y cómo prepararte para un reclamo.",
+            "pasos_sugeridos": [
+                "Obtén una clave de API gratuita en Google AI Studio.",
+                "Pega tu clave en el campo de la barra lateral de esta aplicación.",
+                "Vuelve a presionar 'Calcular Diagnóstico' para ver los resultados."
+            ]
+        }
         
     try:
         genai.configure(api_key=api_key)
@@ -55,16 +65,36 @@ def explicar_caso(
             prompt += f"- {s['titulo']} (Similitud: {s.get('similitud', 0)*100:.1f}%) - Sumilla: {s['abstract'][:250]}\n"
             
         prompt += """
-        Escribe un resumen analítico estructurado en 3 secciones cortas usando Markdown:
-        1. **¿Qué significa esto para ti?**: Explica el diagnóstico de solidez y tu situación legal en palabras simples.
-        2. **Análisis de tu dinero/situación**: Si hay liquidación, explica de forma amigable qué es cada concepto (CTS, gratificación, etc.) y por qué se sumaron intereses. Si es régimen público, aclara el tema de la reincorporación y la estabilidad.
-        3. **Pasos sugeridos a seguir**: Recomienda acciones concretas (como reunir correos, ir a SUNAFIL para una conciliación gratuita o buscar asistencia legal formal).
-        
-        Mantén un tono empático, tranquilizador y muy profesional.
+        Debes responder ÚNICAMENTE con un objeto JSON que siga estrictamente este esquema:
+        {
+          "resumen": "Resumen directo de una sola línea muy empático sobre su caso (ej. 'Tienes un caso muy sólido para reclamar tu liquidación e intereses').",
+          "significado": "Explicación clara en palabras sencillas de qué significa el puntaje de indicios y su situación legal (máximo 4 oraciones).",
+          "analisis_detalle": "Explicación amigable de los conceptos reclamables (CTS, gratificación, vacaciones, intereses) o de los derechos a reincorporación y estabilidad laboral según el régimen (máximo 5 oraciones).",
+          "pasos_sugeridos": [
+            "Paso 1 detallado",
+            "Paso 2 detallado",
+            "Paso 3 detallado"
+          ]
+        }
         """
         
-        response = model.generate_content(prompt)
-        return response.text
+        response = model.generate_content(
+            prompt,
+            generation_config={"response_mime_type": "application/json"}
+        )
+        
+        # Intentar parsear el JSON generado
+        parsed_data = json.loads(response.text)
+        return parsed_data
         
     except Exception as e:
-        return f"Error al generar la explicación con IA: {e}"
+        return {
+            "resumen": "Error al procesar la explicación del caso.",
+            "significado": "Hubo una dificultad al conectar o procesar la respuesta de la Inteligencia Artificial.",
+            "analisis_detalle": f"Detalle técnico del error: {str(e)}",
+            "pasos_sugeridos": [
+                "Verifica que tu clave API de Gemini sea válida y esté activa.",
+                "Revisa tu conexión a internet e inténtalo nuevamente.",
+                "Si el problema persiste, puedes guiarte de las sentencias y liquidación calculadas arriba."
+            ]
+        }
