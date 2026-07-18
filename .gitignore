@@ -1,0 +1,33 @@
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Python cache y compilados
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Streamlit y configuraciones locales
+.streamlit/config.toml
+.streamlit/secrets.toml
+
+# Datos locales pesados e informes temporales (PDFs)
+data/elperuano/
+data/*.pdf
+data/*.npy
+data/reporte_caso.pdf
+data/test_reporte*.pdf
+data/nuevas_sentencias_*.json
+
+# Sistema Operativo y Editores
+.DS_Store
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

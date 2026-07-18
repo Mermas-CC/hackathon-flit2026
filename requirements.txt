@@ -1,0 +1,7 @@
+pandas
+numpy
+pyarrow
+sentence-transformers
+streamlit
+fpdf2
+duckdb
