@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export default function App() {
   // Estados del Wizard
   const [paso, setPaso] = useState(1);
-  const [apiKey, setApiKey] = useState("AIzaSyAaguhbIjqNOE_xlT91WJF9ZLqBuSK17oA");
+  const [apiKey, setApiKey] = useState("AIzaSyAmgA_ECOV4LeiMlFkUTgumqydyaKPXOY4");
   
   // Datos del Caso (Valores predeterminados para debug "Next, Next")
   const [regimen, setRegimen] = useState("Privado (DL 728)");
@@ -36,6 +36,8 @@ export default function App() {
   const [cargandoIa, setCargandoIa] = useState(false);
   const [cargandoPdf, setCargandoPdf] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [cargandoBoleta, setCargandoBoleta] = useState(false);
+  const [msgBoleta, setMsgBoleta] = useState("");
 
   // Preguntas del Scorecard
   const preguntas = [
@@ -51,6 +53,43 @@ export default function App() {
 
   const handleScorecardChange = (key, value) => {
     setRespuestasScorecard(prev => ({ ...prev, [key]: value }));
+  };
+
+  const analizarBoletaImagen = async (file) => {
+    setCargandoBoleta(true);
+    setMsgBoleta("");
+    setErrorMsg("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+
+      const response = await fetch("http://localhost:8000/api/analizar-boleta", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Error al procesar la boleta");
+      }
+
+      const data = await response.json();
+      
+      // Auto-completar los datos si vienen de la IA
+      if (data.sueldo) setSueldo(parseFloat(data.sueldo));
+      if (data.fecha_inicio) setFechaInicio(data.fecha_inicio);
+      if (data.fecha_cese) setFechaCese(data.fecha_cese);
+      if (data.dias_vacaciones_tomadas !== undefined) setDiasVacacionesTomadas(data.dias_vacaciones_tomadas);
+      if (data.cts_ya_pagada !== undefined) setCtsYaPagada(data.cts_ya_pagada);
+      if (data.gratif_ya_pagada !== undefined) setGratifYaPagada(data.gratif_ya_pagada);
+
+      setMsgBoleta("✅ ¡Boleta analizada con éxito! Los campos se han autocompletado en el formulario.");
+    } catch (e) {
+      setErrorMsg(`Error al procesar boleta: ${e.message}`);
+    } finally {
+      setCargandoBoleta(false);
+    }
   };
 
   // 1. Llamar al Diagnóstico
@@ -264,6 +303,44 @@ export default function App() {
             </div>
 
             <div className="glass-panel p-6 rounded-2xl space-y-4">
+              
+              {/* Uploader de Boleta con IA */}
+              <div className="bg-slate-900/60 p-4 rounded-xl border border-dashed border-slate-700 hover:border-sky-500/50 transition-colors">
+                <label className="block text-xs font-bold text-sky-400 uppercase tracking-wider mb-2">
+                  📸 Auto-completado Multimodal por IA (Gemini 2.5)
+                </label>
+                <p className="text-[11px] text-slate-400 mb-3">
+                  Sube una foto o captura de tu boleta de pago o liquidación. La IA extraerá los datos automáticamente.
+                </p>
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="block w-full text-xs text-slate-400
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-full file:border-0
+                      file:text-xs file:font-semibold
+                      file:bg-slate-800 file:text-sky-400
+                      hover:file:bg-slate-700 file:cursor-pointer"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        analizarBoletaImagen(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  {cargandoBoleta && (
+                    <span className="text-xs text-sky-400 animate-pulse flex items-center gap-1">
+                      <span>●</span> Procesando boleta...
+                    </span>
+                  )}
+                </div>
+                {msgBoleta && (
+                  <p className="text-[11px] text-emerald-400 mt-2 font-medium">
+                    {msgBoleta}
+                  </p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   Régimen Laboral que consideras te corresponde:

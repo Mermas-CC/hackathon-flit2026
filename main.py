@@ -1,7 +1,7 @@
 import os
 import sys
 import datetime
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -278,6 +278,59 @@ def descargar_reporte_pdf(req: PdfRequest):
             raise HTTPException(status_code=500, detail="El archivo PDF no pudo ser creado.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al generar PDF: {e}")
+
+@app.post("/api/analizar-boleta")
+async def analizar_boleta(
+    file: UploadFile = File(...),
+    api_key: str = Form(...)
+):
+    import google.generativeai as genai
+    import json
+    
+    # Validar tipo de archivo
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="El archivo subido debe ser una imagen.")
+        
+    try:
+        # Configurar la API Key
+        genai.configure(api_key=api_key)
+        
+        # Cargar los bytes de la imagen
+        image_bytes = await file.read()
+        image_data = {
+            "mime_type": file.content_type,
+            "data": image_bytes
+        }
+        
+        prompt = """
+        Analiza la imagen adjunta de esta boleta de pago, recibo por honorarios o documento de liquidación de beneficios sociales de Perú.
+        Extrae la información relevante y devuélvela estrictamente en formato JSON válido.
+        Los campos que debes extraer son (si no los encuentras o no existen, devuélvelos como null o 0):
+        - sueldo: (float) la remuneración mensual o básico
+        - fecha_inicio: (string en formato YYYY-MM-DD) fecha de ingreso o inicio de labores
+        - fecha_cese: (string en formato YYYY-MM-DD) fecha de cese o término de labores
+        - dias_vacaciones_tomadas: (int) días de vacaciones gozados que figuren en el documento
+        - cts_ya_pagada: (float) monto de CTS depositado o pagado que figure en la boleta/liquidación
+        - gratif_ya_pagada: (float) monto de gratificaciones pagadas que figure en la boleta/liquidación
+
+        Devuelve exclusivamente el objeto JSON en texto plano, sin bloques de código markdown, sin prefijos ni comentarios.
+        """
+        
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content([prompt, image_data])
+        
+        # Limpiar posibles bloques markdown del output de Gemini
+        text = response.text.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+        
+        data = json.loads(text)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al analizar la boleta con Gemini IA: {e}")
 
 if __name__ == "__main__":
     import uvicorn
