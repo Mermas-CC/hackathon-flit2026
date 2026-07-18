@@ -41,6 +41,7 @@ export default function App() {
   const [msgBoleta, setMsgBoleta] = useState("");
   const [precedenteSeleccionado, setPrecedenteSeleccionado] = useState(0);
   const [sidepanelAbierto, setSidepanelAbierto] = useState(false);
+  const [nodoSeleccionado, setNodoSeleccionado] = useState(null);
 
   // Preguntas del Scorecard
   const preguntas = [
@@ -830,7 +831,146 @@ export default function App() {
                 })}
               </div>
             </div>
+            {/* Mapa de Conexiones Legales (Nodos) */}
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl space-y-4 shadow-xl text-slate-100">
+              <div>
+                <h4 className="text-lg font-bold text-sky-400 flex items-center gap-2">
+                  🗺️ Mapa de Nodos: Ecosistema Documental de tu Caso
+                </h4>
+                <p className="text-xs text-slate-400">
+                  Visualiza las relaciones y enlaces de todos los documentos y leyes que sustentan tu liquidación. Haz clic en cualquier nodo para ver detalles o descargar el archivo.
+                </p>
+              </div>
 
+              {/* Contenedor del Mapa */}
+              <div className="relative w-full h-[400px] bg-slate-950/60 rounded-xl border border-slate-800 overflow-hidden select-none">
+                {/* Cuadrícula decorativa de fondo */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:30px_30px] opacity-10"></div>
+                
+                {/* Capa de líneas SVG de conexiones */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {/* Línea desde Centro a Boleta */}
+                  <line x1="50%" y1="50%" x2="15%" y2="25%" stroke="#0284c7" strokeWidth="1.5" strokeDasharray="4 4" className="animate-[dash_10s_linear_infinite]" />
+                  {/* Línea desde Centro a Caso 1 */}
+                  <line x1="50%" y1="50%" x2="35%" y2="15%" stroke="#10b981" strokeWidth="2" />
+                  {/* Línea desde Centro a Caso 2 */}
+                  <line x1="50%" y1="50%" x2="65%" y2="15%" stroke="#10b981" strokeWidth="2" />
+                  {/* Línea desde Centro a Caso 3 */}
+                  <line x1="50%" y1="50%" x2="85%" y2="25%" stroke="#10b981" strokeWidth="2" />
+                  {/* Línea desde Centro a DL 728 */}
+                  <line x1="50%" y1="50%" x2="15%" y2="75%" stroke="#f59e0b" strokeWidth="1.5" />
+                  {/* Línea desde Centro a DL 25920 */}
+                  <line x1="50%" y1="50%" x2="35%" y2="85%" stroke="#f59e0b" strokeWidth="1.5" />
+                  {/* Línea desde Centro a Ley 27321 */}
+                  <line x1="50%" y1="50%" x2="65%" y2="85%" stroke="#f59e0b" strokeWidth="1.5" />
+                  {/* Línea desde Centro a PDF */}
+                  <line x1="50%" y1="50%" x2="85%" y2="75%" stroke="#ec4899" strokeWidth="2" />
+                </svg>
+
+                {/* Renderizar Nodos */}
+                {[
+                  { id: 'caso', label: '🌟 Tu Caso', type: 'center', pos: { left: '50%', top: '50%' }, desc: 'El núcleo de la desnaturalización bajo análisis.' },
+                  { id: 'boleta', label: '📄 Boleta Escaneada', type: 'doc', pos: { left: '15%', top: '25%' }, desc: 'Imagen de boleta o recibo procesado por la IA de Gemini para autocompletar el sueldo y periodos.' },
+                  { id: 'pdf', label: '📥 Reporte PDF', type: 'pdf', pos: { left: '85%', top: '75%' }, desc: 'El documento final con el cálculo detallado de beneficios e intereses listo para descargar.', action: descargarPdf },
+                  { id: 'dl728', label: '⚖️ DL 728', type: 'law', pos: { left: '15%', top: '75%' }, desc: 'Ley de Productividad y Competitividad Laboral. Base para el cálculo de CTS, Gratificación y Vacaciones.', url: 'https://spij.minjus.gob.pe/spij-ext-web/#/detalledocumentosennavegacion/justicia/728' },
+                  { id: 'dl25920', label: '⚖️ DL 25920', type: 'law', pos: { left: '35%', top: '85%' }, desc: 'Ley que dicta que el Interés Legal Laboral se devenga de manera diaria a partir del día siguiente del cese laboral.', url: 'https://spij.minjus.gob.pe/spij-ext-web/#/detalledocumentosennavegacion/justicia/25920' },
+                  { id: 'ley27321', label: '⚖️ Ley 27321', type: 'law', pos: { left: '65%', top: '85%' }, desc: 'Ley que establece el plazo de prescripción laboral de 4 años para reclamar derechos y beneficios.', url: 'https://spij.minjus.gob.pe/spij-ext-web/#/detalledocumentosennavegacion/justicia/27321' },
+                  { 
+                    id: 'caso1', 
+                    label: '🏛️ Precedente 1', 
+                    type: 'sentencia', 
+                    pos: { left: '35%', top: '15%' }, 
+                    desc: diagnostico?.sentencias?.[0]?.titulo || 'Sentencia jurisprudencial relevante.',
+                    url: diagnostico?.sentencias?.[0]?.url 
+                  },
+                  { 
+                    id: 'caso2', 
+                    label: '🏛️ Precedente 2', 
+                    type: 'sentencia', 
+                    pos: { left: '65%', top: '15%' }, 
+                    desc: diagnostico?.sentencias?.[1]?.titulo || 'Sentencia jurisprudencial relevante.',
+                    url: diagnostico?.sentencias?.[1]?.url 
+                  },
+                  { 
+                    id: 'caso3', 
+                    label: '🏛️ Precedente 3', 
+                    type: 'sentencia', 
+                    pos: { left: '85%', top: '25%' }, 
+                    desc: diagnostico?.sentencias?.[2]?.titulo || 'Sentencia jurisprudencial relevante.',
+                    url: diagnostico?.sentencias?.[2]?.url 
+                  }
+                ].map((node) => {
+                  const esActivo = nodoSeleccionado?.id === node.id;
+                  let colorClass = "bg-slate-900 border-slate-700 text-slate-200 hover:border-sky-500 hover:bg-slate-850";
+                  if (node.type === 'center') {
+                    colorClass = "bg-sky-600 border-sky-400 text-white font-bold animate-[pulse_2s_infinite]";
+                  } else if (node.type === 'law') {
+                    colorClass = "bg-amber-950/40 border-amber-600/50 text-amber-300 hover:bg-amber-950/60";
+                  } else if (node.type === 'sentencia') {
+                    colorClass = "bg-emerald-950/40 border-emerald-600/50 text-emerald-300 hover:bg-emerald-950/60";
+                  } else if (node.type === 'pdf') {
+                    colorClass = "bg-pink-950/40 border-pink-600/50 text-pink-300 hover:bg-pink-950/60 animate-pulse";
+                  }
+
+                  return (
+                    <button
+                      key={node.id}
+                      onClick={() => setNodoSeleccionado(node)}
+                      style={{
+                        position: 'absolute',
+                        left: node.pos.left,
+                        top: node.pos.top,
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: esActivo ? 20 : 10
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border shadow-lg transition-all duration-300 ${colorClass}`}
+                    >
+                      {node.label}
+                    </button>
+                  );
+                })}
+
+                {/* Detalle del Nodo Seleccionado */}
+                {nodoSeleccionado && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-slate-900/95 border border-slate-800 p-4 rounded-xl shadow-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 z-30 backdrop-blur-md">
+                    <div className="space-y-1">
+                      <h5 className="text-xs font-bold uppercase tracking-wider text-sky-400">
+                        📁 {nodoSeleccionado.label}
+                      </h5>
+                      <p className="text-xs text-slate-300 leading-normal max-w-xl">
+                        {nodoSeleccionado.desc}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      {nodoSeleccionado.url && (
+                        <a 
+                          href={nodoSeleccionado.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded text-xs font-bold transition-colors"
+                        >
+                          Ver Fuente Oficial
+                        </a>
+                      )}
+                      {nodoSeleccionado.action && (
+                        <button 
+                          onClick={nodoSeleccionado.action}
+                          className="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 text-white rounded text-xs font-bold transition-colors"
+                        >
+                          Ejecutar Acción
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setNodoSeleccionado(null)}
+                        className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded text-xs transition-colors"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             {/* Informe de IA */}
             <div className="bg-white border border-slate-200 p-6 rounded-2xl space-y-6 shadow-sm">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
