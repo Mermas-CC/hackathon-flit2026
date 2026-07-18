@@ -1,6 +1,15 @@
 import os
 import sys
 import datetime
+
+# Cargar variables de entorno del archivo .env si existe
+if os.path.exists(".env"):
+    with open(".env", "r") as f:
+        for line in f:
+            line_clean = line.strip()
+            if line_clean and not line_clean.startswith("#") and "=" in line_clean:
+                key, val = line_clean.split("=", 1)
+                os.environ[key.strip()] = val.strip()
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse

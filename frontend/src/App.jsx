@@ -197,10 +197,8 @@ export default function App() {
       setDiagnostico(data);
       setPaso(3);
       
-      // Auto-generar explicación con IA de forma asíncrona si hay API Key
-      if (apiKey) {
-        solicitarExplicacionIa(data);
-      }
+      // Auto-generar explicación con IA
+      solicitarExplicacionIa(data);
     } catch (e) {
       setErrorMsg(e.message);
     } finally {
@@ -315,24 +313,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* Ingresar API Key */}
-        <div className="mb-6">
-          <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2">
-            Gemini API Key
-          </label>
-          <input
-            type="password"
-            className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-red-500"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Introduce tu API Key..."
-          />
-          <p className="text-[10px] text-slate-500 mt-1">
-            Requerido para generar la explicación y sumillas inteligentes con IA.
-          </p>
-        </div>
 
-        <hr className="border-slate-200 my-4" />
 
         {/* Estadística del panel */}
         <div className="mb-6 bg-red-50 border border-red-200 p-4 rounded-xl">
