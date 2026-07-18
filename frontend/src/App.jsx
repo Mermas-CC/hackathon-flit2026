@@ -831,12 +831,13 @@ export default function App() {
                             href={sent.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="py-2.5 px-2 rounded bg-slate-950 hover:bg-slate-900 text-slate-200 border border-slate-800 text-[11px] font-bold transition-all duration-200 text-center flex items-center justify-center gap-1"
+                            className="py-2.5 px-2 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-[11px] font-bold transition-all duration-200 text-center flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            📥 Descargar PDF
+                            <svg className="w-3 h-3 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                            Descargar PDF
                           </a>
                         ) : (
-                          <span className="py-2.5 px-2 rounded bg-slate-100 text-slate-400 border border-slate-200 text-[11px] font-bold text-center cursor-not-allowed">
+                          <span className="py-2.5 px-2 rounded bg-slate-50 text-slate-400 border border-slate-150 text-[11px] font-bold text-center cursor-not-allowed">
                             Sin Enlace
                           </span>
                         )}
