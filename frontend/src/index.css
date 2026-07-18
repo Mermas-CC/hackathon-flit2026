@@ -2,8 +2,8 @@
 
 @layer base {
   body {
-    background: radial-gradient(circle at 10% 20%, #1e293b 0%, #0f172a 90%);
-    color: #f8fafc;
+    background: radial-gradient(circle at 10% 20%, #fdfdfd 0%, #f4f6f8 100%);
+    color: #0f172a;
     min-height: 100vh;
     font-family: 'Outfit', sans-serif;
   }
@@ -16,16 +16,18 @@
   transition-duration: 200ms;
 }
 
-/* Efectos de Cristal / Glassmorphism */
+/* Efectos de Cristal en Tema Claro (Glassmorphism Premium) */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.45);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 8px -1px rgba(15, 23, 42, 0.02);
 }
 
 .glass-panel-hover:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  border-color: rgba(220, 38, 38, 0.3);
+  box-shadow: 0 10px 30px -5px rgba(220, 38, 38, 0.08);
   transform: translateY(-2px);
 }
+
