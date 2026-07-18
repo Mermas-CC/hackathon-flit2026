@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export default function App() {
   // Estados del Wizard
   const [paso, setPaso] = useState(1);
-  const [apiKey, setApiKey] = useState("AIzaSyAmgA_ECOV4LeiMlFkUTgumqydyaKPXOY4");
+  const [apiKey, setApiKey] = useState("");
   
   // Datos del Caso (Valores predeterminados para debug "Next, Next")
   const [regimen, setRegimen] = useState("Privado (DL 728)");
